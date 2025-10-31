@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Powered Aadhaar Fraud Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    body, html {
+      margin: 0;
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #eef2f7, #ffffff);
+    }
+    .fade-in { animation: fadeIn 1s ease-in-out forwards; opacity: 0; }
+    @keyframes fadeIn { to { opacity: 1; } }
+    .spinner {
+      border: 5px solid rgba(0,0,0,0.1);
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border-left-color: #2563eb;
+      animation: spin 1s linear infinite;
+      margin: auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-primary {
+      background: linear-gradient(to right, #2563eb, #1e3a8a);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(to right, #3b82f6, #1e40af);
+      transform: scale(1.05);
+    }
+    .label-valid {
+      background-color: #22c55e;
+      color: white;
+      font-weight: 700;
+      padding: 0.75rem 1.5rem;
+      border-radius: 999px;
+      font-size: 1.5rem;
+    }
+    .label-fake {
+      background-color: #ef4444;
+      color: white;
+      font-weight: 700;
+      padding: 0.75rem 1.5rem;
+      border-radius: 999px;
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+  <!-- Header -->
+  <header class="fixed top-0 w-full bg-gradient-to-r from-blue-800 to-blue-600 text-white text-center shadow-lg z-50 p-6">
+    <h1 class="text-4xl font-bold tracking-wide">AI Powered Aadhaar Fraud Management System</h1>
+    <p class="text-lg font-medium mt-1">An Enterprise Solution for Secure UID Verification</p>
+  </header>
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col items-center justify-center p-6 pt-40 space-y-10">
+
+    <!-- Landing -->
+    <div id="landing-page" class="fade-in bg-white rounded-2xl shadow-xl w-full max-w-4xl p-16 text-center border border-gray-200">
+      <h2 class="text-4xl font-bold text-blue-700 mb-4">Welcome</h2>
+      <p class="text-gray-600 text-xl mb-6">Start secure Aadhaar verification below</p>
+      <button id="start-btn" class="btn-primary text-white px-10 py-4 rounded-full text-2xl shadow transition">Start Verification</button>
+    </div>
+
+    <!-- Upload -->
+    <div id="upload-page" class="hidden bg-white rounded-2xl shadow-xl w-full max-w-4xl p-12 text-center border border-gray-200">
+      <h2 class="text-3xl font-bold text-blue-700 mb-6">Upload Aadhaar Card</h2>
+      <form id="upload-form" enctype="multipart/form-data" class="flex flex-col gap-6">
+        <input id="aadhaar-file" type="file" accept="image/*" required class="border border-gray-300 p-3 rounded-lg text-lg focus:ring-2 focus:ring-blue-400" />
+        <img id="preview-image" class="hidden w-full rounded-xl shadow-md mt-4" />
+        <button type="submit" class="btn-primary text-white px-8 py-4 rounded-lg text-xl shadow transition">Upload & Verify</button>
+      </form>
+      <div id="loader" class="hidden mt-8 text-center">
+        <div class="spinner"></div>
+        <p class="text-blue-600 mt-4 text-lg font-semibold">Analyzing Aadhaar using AI...</p>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="result-page" class="hidden bg-white rounded-2xl shadow-xl w-full max-w-5xl p-12 border border-gray-200">
+      <h2 class="text-3xl font-bold text-blue-700 text-center mb-8">Verification Result</h2>
+      
+      <div class="flex flex-wrap justify-between gap-6">
+        <div class="w-full md:w-[48%] text-center">
+          <h3 class="text-xl font-semibold mb-3 text-gray-700">Original Image</h3>
+          <img id="original-image" src="" alt="Original Aadhaar" class="w-full rounded-xl shadow-md border border-gray-200">
+        </div>
+        <div class="w-full md:w-[48%] text-center">
+          <h3 class="text-xl font-semibold mb-3 text-gray-700">Detected Image</h3>
+          <img id="boxed-image" src="" alt="Detected Aadhaar" class="w-full rounded-xl shadow-md border border-gray-200">
+        </div>
+      </div>
+
+      <div class="mt-8">
+        <h3 class="text-2xl font-semibold text-gray-700 mb-3">Extracted Details</h3>
+        <table class="w-full text-left border-collapse border-t border-gray-200">
+          <tr><td class="font-semibold text-blue-600 text-lg p-2">Name:</td><td id="name" class="text-lg p-2"></td></tr>
+          <tr><td class="font-semibold text-blue-600 text-lg p-2">DOB:</td><td id="dob" class="text-lg p-2"></td></tr>
+          <tr><td class="font-semibold text-blue-600 text-lg p-2">Gender:</td><td id="gender" class="text-lg p-2"></td></tr>
+          <tr><td class="font-semibold text-blue-600 text-lg p-2">Aadhaar Number:</td><td id="aadhaar_number" class="text-lg p-2"></td></tr>
+          <tr><td class="font-semibold text-blue-600 text-lg p-2">Fraud Score:</td><td id="fraud_score" class="text-lg p-2"></td></tr>
+        </table>
+      </div>
+
+      <div class="text-center mt-6">
+        <div id="result-label" class="inline-block px-6 py-3 text-xl font-bold rounded-full"></div>
+      </div>
+
+      <div class="flex justify-center gap-4 mt-8 flex-wrap">
+        <button id="download-btn" class="hidden bg-green-600 text-white px-8 py-3 rounded-lg text-lg shadow hover:bg-green-700 transition">⬇ Download Report</button>
+        <button id="report-btn" class="hidden bg-red-600 text-white px-8 py-3 rounded-lg text-lg shadow hover:bg-red-700 transition">🚨 Report Fraud</button>
+        <button id="back-btn" class="btn-primary text-white px-8 py-3 rounded-lg text-lg shadow transition">↩ Back</button>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="w-full p-4 bg-gradient-to-r from-blue-800 to-blue-600 text-white text-center text-sm fixed bottom-0">
+    &copy; 2025 AI Powered UID/Aadhaar Fraud Management | Infosys Internship Presentation
+  </footer>
+
+  <script>
+    const landingPage = document.getElementById('landing-page');
+    const uploadPage = document.getElementById('upload-page');
+    const resultPage = document.getElementById('result-page');
+    const startBtn = document.getElementById('start-btn');
+    const form = document.getElementById('upload-form');
+    const loader = document.getElementById('loader');
+    const backBtn = document.getElementById('back-btn');
+    const resultLabel = document.getElementById('result-label');
+    const previewImg = document.getElementById('preview-image');
+    const downloadBtn = document.getElementById('download-btn');
+    const reportBtn = document.getElementById('report-btn');
+
+    startBtn.addEventListener('click', () => {
+      landingPage.classList.add('hidden');
+      uploadPage.classList.remove('hidden');
+    });
+
+    document.getElementById('aadhaar-file').addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          previewImg.src = e.target.result;
+          previewImg.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('aadhaar-file');
+      if (!fileInput.files[0]) return alert('Please upload a file.');
+
+      loader.classList.remove('hidden');
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      const response = await fetch('/predict', { method: 'POST', body: formData });
+      const data = await response.json();
+      loader.classList.add('hidden');
+      uploadPage.classList.add('hidden');
+      resultPage.classList.remove('hidden');
+
+      document.getElementById('original-image').src = data.original_image || previewImg.src;
+      document.getElementById('boxed-image').src = data.boxed_image || 'highlighted_aadhaar.png';
+      document.getElementById('name').innerText = data.ocr_details?.name || 'N/A';
+      document.getElementById('dob').innerText = data.ocr_details?.dob || 'N/A';
+      document.getElementById('gender').innerText = data.ocr_details?.gender || 'N/A';
+      document.getElementById('aadhaar_number').innerText = data.ocr_details?.aadhaar_number || 'N/A';
+      document.getElementById('fraud_score').innerText = data.ocr_details?.fraud_score || 'N/A';
+
+      const labelText = data.prediction?.toLowerCase() || '';
+      if (labelText.includes('fake')) {
+        resultLabel.textContent = 'Fake Aadhaar Detected';
+        resultLabel.className = 'label-fake';
+        downloadBtn.classList.remove('hidden');
+        reportBtn.classList.remove('hidden');
+      } else {
+        resultLabel.textContent = 'Valid Aadhaar';
+        resultLabel.className = 'label-valid';
+        downloadBtn.classList.add('hidden');
+        reportBtn.classList.add('hidden');
+      }
+
+      downloadBtn.onclick = () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.text("Aadhaar Verification Report", 60, 20);
+        doc.setFontSize(12);
+        doc.text(`Name: ${document.getElementById('name').innerText}`, 20, 40);
+        doc.text(`DOB: ${document.getElementById('dob').innerText}`, 20, 50);
+        doc.text(`Gender: ${document.getElementById('gender').innerText}`, 20, 60);
+        doc.text(`Aadhaar Number: ${document.getElementById('aadhaar_number').innerText}`, 20, 70);
+        doc.text(`Fraud Score: ${document.getElementById('fraud_score').innerText}`, 20, 80);
+        doc.text(`Result: ${resultLabel.textContent}`, 20, 90);
+        doc.save("Aadhaar_Report.pdf");
+      };
+
+      reportBtn.onclick = () => {
+        alert("Fraud report has been submitted for investigation.");
+      };
+    });
+
+    backBtn.addEventListener('click', () => {
+      resultPage.classList.add('hidden');
+      uploadPage.classList.remove('hidden');
+      document.getElementById('aadhaar-file').value = '';
+      previewImg.classList.add('hidden');
+    });
+  </script>
+</body>
+</html>
